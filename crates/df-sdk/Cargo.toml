@@ -1,0 +1,8 @@
+[package]
+name = "df-sdk"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+models = { path = "../models" }
+time = "0.3.44"
