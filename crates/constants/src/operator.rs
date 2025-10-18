@@ -1,69 +1,73 @@
 #[derive(Debug)]
 pub enum Operator {
-    红狼,
-    威龙,
-    无名,
-    疾风,
-    蜂医,
-    蛊,
-    牧羊人,
-    乌鲁鲁,
-    深蓝,
-    露娜,
-    骇爪,
-    银翼,
+    DWolf,
+    Vyron,
+    // TODO: 非官方翻译
+    Nameless,
+    // TODO: 非官方翻译
+    Swiftwind,
+    Stinger,
+    Toxik,
+    Shepherd,
+    Uluru,
+    // TODO: 非官方翻译
+    DeepBlue,
+    Luna,
+    Hackclaw,
+    // TODO: 非官方翻译
+    SilverWing,
 }
 
 impl Operator {
     pub fn from_str(x: &str) -> Option<Self> {
         match x {
-            "红狼" => Some(Operator::红狼),
-            "威龙" => Some(Operator::威龙),
-            "无名" => Some(Operator::无名),
-            "疾风" => Some(Operator::疾风),
-            "蜂医" => Some(Operator::蜂医),
-            "蛊" => Some(Operator::蛊),
-            "牧羊人" => Some(Operator::牧羊人),
-            "乌鲁鲁" => Some(Operator::乌鲁鲁),
-            "深蓝" => Some(Operator::深蓝),
-            "露娜" => Some(Operator::露娜),
-            "骇爪" => Some(Operator::骇爪),
-            "银翼" => Some(Operator::银翼),
+            "红狼" => Some(Operator::DWolf),
+            "威龙" => Some(Operator::Vyron),
+            "无名" => Some(Operator::Nameless),
+            "疾风" => Some(Operator::Swiftwind),
+            "蜂医" => Some(Operator::Stinger),
+            "蛊" => Some(Operator::Toxik),
+            "牧羊人" => Some(Operator::Shepherd),
+            "乌鲁鲁" => Some(Operator::Uluru),
+            "深蓝" => Some(Operator::DeepBlue),
+            "露娜" => Some(Operator::Luna),
+            "骇爪" => Some(Operator::Hackclaw),
+            "银翼" => Some(Operator::SilverWing),
             _ => None,
         }
     }
 
     pub fn as_str(&self) -> &'static str {
         match self {
-            Operator::红狼 => "红狼",
-            Operator::威龙 => "威龙",
-            Operator::无名 => "无名",
-            Operator::疾风 => "疾风",
-            Operator::蜂医 => "蜂医",
-            Operator::蛊 => "蛊",
-            Operator::牧羊人 => "牧羊人",
-            Operator::乌鲁鲁 => "乌鲁鲁",
-            Operator::深蓝 => "深蓝",
-            Operator::露娜 => "露娜",
-            Operator::骇爪 => "骇爪",
-            Operator::银翼 => "银翼",
+            Operator::DWolf => "红狼",
+            Operator::Vyron => "威龙",
+            Operator::Nameless => "无名",
+            Operator::Swiftwind => "疾风",
+            Operator::Stinger => "蜂医",
+            Operator::Toxik => "蛊",
+            Operator::Shepherd => "牧羊人",
+            Operator::Uluru => "乌鲁鲁",
+            Operator::DeepBlue => "深蓝",
+            Operator::Luna => "露娜",
+            Operator::Hackclaw => "骇爪",
+            Operator::SilverWing => "银翼",
         }
     }
 
     pub fn from_operator_id(x: u16) -> Option<Self> {
         match x {
-            10007 => Some(Operator::红狼),
-            10010 => Some(Operator::威龙),
-            10011 => Some(Operator::无名),
-            10012 => Some(Operator::疾风),
-            20003 => Some(Operator::蜂医),
-            20004 => Some(Operator::蛊),
-            30008 => Some(Operator::牧羊人),
-            30009 => Some(Operator::乌鲁鲁),
-            30010 => Some(Operator::深蓝),
-            40005 => Some(Operator::露娜),
-            40010 => Some(Operator::骇爪),
-            40011 => Some(Operator::银翼),
+            10007 => Some(Operator::DWolf),
+            10010 => Some(Operator::Vyron),
+            10011 => Some(Operator::Nameless),
+            10012 => Some(Operator::Swiftwind),
+            20003 => Some(Operator::Stinger),
+            20004 => Some(Operator::Toxik),
+            30008 => Some(Operator::Shepherd),
+            30009 => Some(Operator::Uluru),
+            30010 => Some(Operator::DeepBlue),
+            40005 => Some(Operator::Luna),
+            40010 => Some(Operator::Hackclaw),
+            40011 => Some(Operator::SilverWing),
             _ => None,
         }
     }
