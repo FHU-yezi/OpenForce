@@ -1,12 +1,11 @@
 use crate::parsers::{parse_str, parse_str_then_number, parse_time, parse_uint};
 use crate::sdk::DeltaForceSdk;
+use crate::utils::extract_data;
 use constants::{escape_result::EscapeResult, level::Level, map::Map, operator::Operator};
 use models::battle_record::BattleRecord;
-use serde_json::Value;
 
 impl<'a> DeltaForceSdk<'a> {
     pub async fn iter_battle_records(&self) -> Result<Vec<BattleRecord>, String> {
-        // 构建带有查询参数的 URL
         let mut url = self.base_url.join("/ide/").unwrap();
         url.query_pairs_mut()
             .append_pair("iChartId", "450526")
@@ -29,20 +28,11 @@ impl<'a> DeltaForceSdk<'a> {
             .await
             .map_err(|e| format!("发送请求失败: {}", e))?;
 
-        if !response.status().is_success() {
-            return Err(format!("请求失败，状态码: {}", response.status()));
-        }
+        let data = extract_data(response).await?;
 
-        let data: Value = response
-            .json()
-            .await
-            .map_err(|e| format!("解析数据失败: {}", e))?;
-
-        // println!("{:#?}", data);
-
-        Ok(data["jData"].as_object().unwrap()["data"]
+        Ok(data
             .as_array()
-            .expect("data 数组不存在")
+            .ok_or("解析数据失败")?
             .iter()
             .map(|x| BattleRecord {
                 id: parse_str(&x["RoomId"]).unwrap(),
