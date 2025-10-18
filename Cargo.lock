@@ -3,5 +3,12 @@
 version = 4
 
 [[package]]
-name = "openforce"
+name = "cli"
+version = "0.1.0"
+dependencies = [
+ "constants",
+]
+
+[[package]]
+name = "constants"
 version = "0.1.0"

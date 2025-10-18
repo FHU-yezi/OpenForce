@@ -1,9 +1,9 @@
-[package]
-name = "openforce"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "3"
+members = ["crates/*"]
 
-[dependencies]
+[workspace.lints.rust]
+unsafe_code = "forbid"
 
 [profile.release]
 strip = true
