@@ -36,4 +36,11 @@ impl<'a> Credentials<'a> {
             Err("Cookies 缺少鉴权信息".into())
         }
     }
+
+    pub fn to_cookies(&self) -> String {
+        format!(
+            "acctype={};openid={};access_token={}",
+            self.account_type, self.open_id, self.access_token
+        )
+    }
 }

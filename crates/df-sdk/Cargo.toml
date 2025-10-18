@@ -5,4 +5,8 @@ edition = "2024"
 
 [dependencies]
 models = { path = "../models" }
-time = "0.3.44"
+constants = { path = "../constants" }
+reqwest = { version = "0.12.24", features = ["json"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+time = { version = "0.3.44", features = ["macros", "parsing"] }

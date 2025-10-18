@@ -2,19 +2,20 @@ use constants::escape_result::EscapeResult;
 use constants::level::Level;
 use constants::map::Map;
 use constants::operator::Operator;
-use time::OffsetDateTime;
+use time::PrimitiveDateTime;
 
-pub struct BattleRecord<'a> {
-    id: &'a str,
-    time: OffsetDateTime,
-    map: Map,
-    level: Level,
-    operator: Operator,
-    escape_result: EscapeResult,
-    duration_seconds: u16,
-    kill_operators_count: u16,
-    kill_bots_count: u16,
-    escape_value: u32,
-    net_profit: i32,
-    // teammates: Vec<Teammate>,
+#[derive(Debug)]
+pub struct BattleRecord {
+    pub id: String,
+    pub time: PrimitiveDateTime,
+    pub map: Map,
+    pub level: Level,
+    pub operator: Operator,
+    pub escape_result: EscapeResult,
+    pub duration_seconds: u16,
+    pub kill_operators_count: u16,
+    pub kill_bots_count: u16,
+    pub escape_value: u32,
+    pub net_profit: i32,
+    // pub teammates: Vec<Teammate>,
 }
