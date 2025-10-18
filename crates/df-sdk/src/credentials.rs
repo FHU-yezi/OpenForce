@@ -1,36 +1,39 @@
-pub struct Credentials {
-    account_type: String,
-    open_id: String,
-    access_token: String,
+pub struct Credentials<'a> {
+    account_type: &'a str,
+    open_id: &'a str,
+    access_token: &'a str,
 }
 
-impl Credentials {
-    pub fn from_cookies(cookies_string: &str) -> Result<Self, String> {
-        let mut account_type = String::new();
-        let mut open_id = String::new();
-        let mut access_token = String::new();
+impl<'a> Credentials<'a> {
+    pub fn from_cookies(cookies_string: &'a str) -> Result<Self, String> {
+        let mut account_type: Option<&str> = None;
+        let mut open_id: Option<&str> = None;
+        let mut access_token: Option<&str> = None;
 
         for pair in cookies_string.split(";") {
             if let Some(equal_sign_index) = pair.find("=") {
                 let (key, value) = pair.split_at(equal_sign_index);
-                let key = key.trim().to_string();
-                let value = value[1..].trim().to_string(); // 跳过等于号本身
-                match key.as_str() {
-                    "acctype" => account_type = value,
-                    "openid" => open_id = value,
-                    "access_token" => access_token = value,
+                let key = key.trim();
+                let value = value[1..].trim(); // 跳过等于号本身
+                match key {
+                    "acctype" => account_type = Some(value),
+                    "openid" => open_id = Some(value),
+                    "access_token" => access_token = Some(value),
                     _ => (),
                 }
             }
         }
-        if account_type.len() == 0 || open_id.len() == 0 || access_token.len() == 0 {
-            return Err("Cookies 缺少鉴权信息".into());
-        }
 
-        Ok(Self {
-            account_type,
-            open_id,
-            access_token,
-        })
+        if let (Some(account_type), Some(open_id), Some(access_token)) =
+            (account_type, open_id, access_token)
+        {
+            Ok(Self {
+                account_type,
+                open_id,
+                access_token,
+            })
+        } else {
+            Err("Cookies 缺少鉴权信息".into())
+        }
     }
 }

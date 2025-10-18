@@ -4,8 +4,8 @@ use constants::map::Map;
 use constants::operator::Operator;
 use time::OffsetDateTime;
 
-pub struct BattleRecord {
-    id: String,
+pub struct BattleRecord<'a> {
+    id: &'a str,
     time: OffsetDateTime,
     map: Map,
     level: Level,
