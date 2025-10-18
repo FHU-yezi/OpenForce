@@ -1,8 +1,8 @@
+use crate::parsers::{parse_str, parse_str_then_number, parse_time, parse_uint};
 use crate::sdk::DeltaForceSdk;
 use constants::{escape_result::EscapeResult, level::Level, map::Map, operator::Operator};
 use models::battle_record::BattleRecord;
 use serde_json::Value;
-use time::{PrimitiveDateTime, macros::format_description};
 
 impl<'a> DeltaForceSdk<'a> {
     pub async fn iter_battle_records(&self) -> Result<Vec<BattleRecord>, String> {
@@ -45,26 +45,20 @@ impl<'a> DeltaForceSdk<'a> {
             .expect("data 数组不存在")
             .iter()
             .map(|x| BattleRecord {
-                id: x["RoomId"].as_str().unwrap().to_string(),
-                time: PrimitiveDateTime::parse(
-                    x["dtEventTime"].as_str().unwrap(),
-                    format_description!("[year]-[month]-[day] [hour]:[minute]:[second]"),
-                )
-                .unwrap(),
-                map: Map::from_map_id(x["MapId"].as_str().unwrap().parse::<u16>().unwrap())
-                    .unwrap(),
-                level: Level::from_map_id(x["MapId"].as_str().unwrap().parse::<u16>().unwrap())
-                    .unwrap(),
-                operator: Operator::from_operator_id(x["ArmedForceId"].as_u64().unwrap() as u16)
+                id: parse_str(&x["RoomId"]).unwrap(),
+                time: parse_time(&x["dtEventTime"]).unwrap(),
+                map: Map::from_map_id(parse_str_then_number(&x["MapId"]).unwrap()).unwrap(),
+                level: Level::from_map_id(parse_str_then_number(&x["MapId"]).unwrap()).unwrap(),
+                operator: Operator::from_operator_id(parse_uint(&x["ArmedForceId"]).unwrap())
                     .unwrap(),
                 escape_result: EscapeResult::from_escape_result_id(
-                    x["EscapeFailReason"].as_u64().unwrap() as u8,
+                    parse_uint(&x["EscapeFailReason"]).unwrap(),
                 )
                 .unwrap(),
-                duration_seconds: x["DurationS"].as_u64().unwrap() as u16,
-                kill_operators_count: x["KillCount"].as_u64().unwrap() as u16,
-                kill_bots_count: x["DurationS"].as_u64().unwrap() as u16,
-                escape_value: x["FinalPrice"].as_str().unwrap().parse::<u32>().unwrap(),
+                duration_seconds: parse_uint(&x["DurationS"]).unwrap(),
+                kill_operators_count: parse_uint(&x["KillCount"]).unwrap(),
+                kill_bots_count: parse_uint(&x["DurationS"]).unwrap(),
+                escape_value: parse_str_then_number(&x["FinalPrice"]).unwrap(),
                 // TODO
                 net_profit: 0,
             })
