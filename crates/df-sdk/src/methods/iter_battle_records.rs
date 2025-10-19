@@ -30,7 +30,7 @@ impl<'a> DeltaForceSdk<'a> {
 
         let data = extract_data(response).await?;
         for x in data.as_array().ok_or(Error::ParseError)? {
-            println!("正在获取 {} 的对局详情", parse_str(&x["RoomId"]).unwrap());
+            println!("正在获取 {} 的对局详情", parse_str(&x["RoomId"])?);
 
             let mut details_url = self.endpoint.join("/ide/").unwrap();
             details_url
@@ -38,13 +38,17 @@ impl<'a> DeltaForceSdk<'a> {
                 .append_pair("iChartId", "450471")
                 .append_pair("iSubChartId", "450471")
                 .append_pair("sIdeToken", "ylP3eG")
-                .append_pair("roomId", &parse_str(&x["RoomId"]).unwrap())
+                .append_pair("roomId", &parse_str(&x["RoomId"])?)
                 .append_pair("type", "2");
 
-            let details_request = self
-                .client
-                .post(details_url)
-                .header("Cookie", &self.credentials.as_ref().unwrap().to_cookies());
+            let details_request = self.client.post(details_url).header(
+                "Cookie",
+                &self
+                    .credentials
+                    .as_ref()
+                    .ok_or(Error::MissingCredentials)?
+                    .to_cookies(),
+            );
 
             let details_response = details_request
                 .send()
@@ -57,43 +61,64 @@ impl<'a> DeltaForceSdk<'a> {
             let mut teammates = Vec::new();
             for y in details_data.as_array().ok_or(Error::ParseError)? {
                 match y["vopenid"].as_bool().ok_or(Error::ParseError)? {
-                    true => escape_value = Some(parse_str_then_number(&y["FinalPrice"]).unwrap()),
+                    true => escape_value = Some(parse_str_then_number(&y["FinalPrice"])?),
                     false => teammates.push(Teammate {
-                        operator: Operator::from_operator_id(
-                            parse_uint(&y["ArmedForceId"]).unwrap(),
-                        )
-                        .unwrap(),
-                        escape_result: EscapeResult::from_escape_result_id(
-                            parse_uint(&y["EscapeFailReason"]).unwrap(),
-                        )
-                        .unwrap(),
-                        duration_seconds: parse_uint(&y["DurationS"]).unwrap(),
-                        kill_operators_count: parse_uint(&y["KillCount"]).unwrap(),
-                        kill_bots_count: parse_uint(&y["KillAICount"]).unwrap(),
-                        escape_value: parse_str_then_number(&y["FinalPrice"]).unwrap(),
+                        operator: Operator::from_operator_id(parse_uint(&y["ArmedForceId"])?)
+                            .ok_or(Error::UnknownData(format!(
+                                "未知的干员 ID（{}）",
+                                parse_uint::<u16>(&y["ArmedForceId"])?
+                            )))?,
+                        escape_result: EscapeResult::from_escape_result_id(parse_uint(
+                            &y["EscapeFailReason"],
+                        )?)
+                        .ok_or(Error::UnknownData(format!(
+                            "未知的撤离结果 ID（{}）",
+                            parse_uint::<u8>(&y["EscapeFailReason"])?
+                        )))?,
+                        duration_seconds: parse_uint(&y["DurationS"])?,
+                        kill_operators_count: parse_uint(&y["KillCount"])?,
+                        kill_bots_count: parse_uint(&y["KillAICount"])?,
+                        escape_value: parse_str_then_number(&y["FinalPrice"])?,
                     }),
                 }
             }
 
             result.push(BattleRecord {
-                id: parse_str(&x["RoomId"]).unwrap(),
-                time: parse_time(&x["dtEventTime"]).unwrap(),
-                map: Map::from_map_id(parse_str_then_number(&x["MapId"]).unwrap()).unwrap(),
-                level: Level::from_map_id(parse_str_then_number(&x["MapId"]).unwrap()).unwrap(),
-                operator: Operator::from_operator_id(parse_uint(&x["ArmedForceId"]).unwrap())
-                    .unwrap(),
-                escape_result: EscapeResult::from_escape_result_id(
-                    parse_uint(&x["EscapeFailReason"]).unwrap(),
-                )
-                .unwrap(),
-                duration_seconds: parse_uint(&x["DurationS"]).unwrap(),
-                kill_operators_count: parse_uint(&x["KillCount"]).unwrap(),
-                kill_bots_count: parse_uint(&x["KillAICount"]).unwrap(),
+                id: parse_str(&x["RoomId"])?,
+                time: parse_time(&x["dtEventTime"])?,
+                map: Map::from_map_id(parse_str_then_number(&x["MapId"])?).ok_or(
+                    Error::UnknownData(format!(
+                        "未知的地图 ID：{}",
+                        parse_str_then_number::<u16>(&x["MapId"])?
+                    )),
+                )?,
+                level: Level::from_map_id(parse_str_then_number(&x["MapId"])?).ok_or(
+                    Error::UnknownData(format!(
+                        "未知的地图 ID：{}",
+                        parse_str_then_number::<u16>(&x["MapId"])?
+                    )),
+                )?,
+                operator: Operator::from_operator_id(parse_uint(&x["ArmedForceId"])?).ok_or(
+                    Error::UnknownData(format!(
+                        "未知的干员 ID（{}）",
+                        parse_uint::<u16>(&x["ArmedForceId"])?
+                    )),
+                )?,
+                escape_result: EscapeResult::from_escape_result_id(parse_uint(
+                    &x["EscapeFailReason"],
+                )?)
+                .ok_or(Error::UnknownData(format!(
+                    "未知的撤离结果 ID（{}）",
+                    parse_uint::<u8>(&x["EscapeFailReason"])?
+                )))?,
+                duration_seconds: parse_uint(&x["DurationS"])?,
+                kill_operators_count: parse_uint(&x["KillCount"])?,
+                kill_bots_count: parse_uint(&x["KillAICount"])?,
                 escape_value: match escape_value {
                     Some(x) => x,
-                    None => return Err(Error::MissingData("未找到自己的对局数据".to_string())),
+                    None => return Err(Error::ParseError),
                 },
-                net_profit: parse_int(&x["flowCalGainedPrice"]).unwrap(),
+                net_profit: parse_int(&x["flowCalGainedPrice"])?,
                 teammates,
             });
         }

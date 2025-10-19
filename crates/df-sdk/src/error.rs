@@ -24,6 +24,6 @@ pub enum Error {
     #[error("数据解析异常")]
     ParseError,
 
-    #[error("数据缺失：{0}")]
-    MissingData(String),
+    #[error("未知数据：{0}")]
+    UnknownData(String),
 }
