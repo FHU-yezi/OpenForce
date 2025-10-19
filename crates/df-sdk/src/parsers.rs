@@ -1,3 +1,7 @@
+use constants::escape_result::EscapeResult;
+use constants::level::Level;
+use constants::map::Map;
+use constants::operator::Operator;
 use serde_json::Value;
 use time::{PrimitiveDateTime, macros::format_description};
 
@@ -42,4 +46,32 @@ pub fn parse_time(x: &Value) -> Result<PrimitiveDateTime, Error> {
 
     PrimitiveDateTime::parse(x.as_str().ok_or(Error::ParseError)?, time_format)
         .map_err(|_| Error::ParseError)
+}
+
+pub fn parse_map_id_to_map(x: &Value) -> Result<Map, Error> {
+    let map_id = parse_str_then_number(&x["MapId"])?;
+
+    Map::from_map_id(map_id).ok_or(Error::UnknownData(format!("未知的地图 ID（{map_id}）")))
+}
+
+pub fn parse_map_id_to_level(x: &Value) -> Result<Level, Error> {
+    let map_id = parse_str_then_number(&x["MapId"])?;
+
+    Level::from_map_id(map_id).ok_or(Error::UnknownData(format!("未知的地图 ID（{map_id}）")))
+}
+
+pub fn parse_operator_id(x: &Value) -> Result<Operator, Error> {
+    let operator_id = parse_uint(x)?;
+
+    Operator::from_operator_id(operator_id).ok_or(Error::UnknownData(format!(
+        "未知的干员 ID（{operator_id}）"
+    )))
+}
+
+pub fn parse_escape_result(x: &Value) -> Result<EscapeResult, Error> {
+    let escape_result_id = parse_uint(x)?;
+
+    EscapeResult::from_escape_result_id(escape_result_id).ok_or(Error::UnknownData(format!(
+        "未知的撤离结果 ID（{escape_result_id}）"
+    )))
 }

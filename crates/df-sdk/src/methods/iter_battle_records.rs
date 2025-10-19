@@ -1,8 +1,7 @@
 use crate::error::Error;
-use crate::parsers::{parse_int, parse_str, parse_str_then_number, parse_time, parse_uint};
+use crate::parsers::*;
 use crate::sdk::DeltaForceSdk;
 use crate::utils::extract_data;
-use constants::{escape_result::EscapeResult, level::Level, map::Map, operator::Operator};
 use models::battle_record::{BattleRecord, Teammate};
 
 impl<'a> DeltaForceSdk<'a> {
@@ -63,18 +62,8 @@ impl<'a> DeltaForceSdk<'a> {
                 match y["vopenid"].as_bool().ok_or(Error::ParseError)? {
                     true => escape_value = Some(parse_str_then_number(&y["FinalPrice"])?),
                     false => teammates.push(Teammate {
-                        operator: Operator::from_operator_id(parse_uint(&y["ArmedForceId"])?)
-                            .ok_or(Error::UnknownData(format!(
-                                "未知的干员 ID（{}）",
-                                parse_uint::<u16>(&y["ArmedForceId"])?
-                            )))?,
-                        escape_result: EscapeResult::from_escape_result_id(parse_uint(
-                            &y["EscapeFailReason"],
-                        )?)
-                        .ok_or(Error::UnknownData(format!(
-                            "未知的撤离结果 ID（{}）",
-                            parse_uint::<u8>(&y["EscapeFailReason"])?
-                        )))?,
+                        operator: parse_operator_id(&y["ArmedForceId"])?,
+                        escape_result: parse_escape_result(&y["EscapeFailReason"])?,
                         duration_seconds: parse_uint(&y["DurationS"])?,
                         kill_operators_count: parse_uint(&y["KillCount"])?,
                         kill_bots_count: parse_uint(&y["KillAICount"])?,
@@ -86,31 +75,10 @@ impl<'a> DeltaForceSdk<'a> {
             result.push(BattleRecord {
                 id: parse_str(&x["RoomId"])?,
                 time: parse_time(&x["dtEventTime"])?,
-                map: Map::from_map_id(parse_str_then_number(&x["MapId"])?).ok_or(
-                    Error::UnknownData(format!(
-                        "未知的地图 ID：{}",
-                        parse_str_then_number::<u16>(&x["MapId"])?
-                    )),
-                )?,
-                level: Level::from_map_id(parse_str_then_number(&x["MapId"])?).ok_or(
-                    Error::UnknownData(format!(
-                        "未知的地图 ID：{}",
-                        parse_str_then_number::<u16>(&x["MapId"])?
-                    )),
-                )?,
-                operator: Operator::from_operator_id(parse_uint(&x["ArmedForceId"])?).ok_or(
-                    Error::UnknownData(format!(
-                        "未知的干员 ID（{}）",
-                        parse_uint::<u16>(&x["ArmedForceId"])?
-                    )),
-                )?,
-                escape_result: EscapeResult::from_escape_result_id(parse_uint(
-                    &x["EscapeFailReason"],
-                )?)
-                .ok_or(Error::UnknownData(format!(
-                    "未知的撤离结果 ID（{}）",
-                    parse_uint::<u8>(&x["EscapeFailReason"])?
-                )))?,
+                map: parse_map_id_to_map(&x["MapId"])?,
+                level: parse_map_id_to_level(&x["MapId"])?,
+                operator: parse_operator_id(&x["ArmedForceId"])?,
+                escape_result: parse_escape_result(&x["EscapeFailReason"])?,
                 duration_seconds: parse_uint(&x["DurationS"])?,
                 kill_operators_count: parse_uint(&x["KillCount"])?,
                 kill_bots_count: parse_uint(&x["KillAICount"])?,
