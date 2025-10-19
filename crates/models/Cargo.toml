@@ -5,4 +5,4 @@ edition = "2024"
 
 [dependencies]
 constants = { path = "../constants" }
-time = "0.3.44"
+time = "0.3"
