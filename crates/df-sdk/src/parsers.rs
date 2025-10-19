@@ -55,14 +55,12 @@ pub fn parse_map_id_to_map(x: &Value) -> Result<Map, Error> {
 }
 
 pub fn parse_map_id_to_level(x: &Value) -> Result<Level, Error> {
-    dbg!();
     let map_id = parse_str_then_number(x)?;
 
     Level::from_map_id(map_id).ok_or(Error::UnknownData(format!("未知的地图 ID（{map_id}）")))
 }
 
 pub fn parse_operator_id(x: &Value) -> Result<Operator, Error> {
-    dbg!();
     let operator_id = parse_uint(x)?;
 
     Operator::from_operator_id(operator_id).ok_or(Error::UnknownData(format!(
@@ -71,7 +69,6 @@ pub fn parse_operator_id(x: &Value) -> Result<Operator, Error> {
 }
 
 pub fn parse_escape_result(x: &Value) -> Result<EscapeResult, Error> {
-    dbg!();
     let escape_result_id = parse_uint(x)?;
 
     EscapeResult::from_escape_result_id(escape_result_id).ok_or(Error::UnknownData(format!(

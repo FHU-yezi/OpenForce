@@ -3,6 +3,7 @@ use df_sdk::sdk::DeltaForceSdk;
 use std::io::Write;
 use std::io::stdin;
 use std::io::stdout;
+use tokio_stream::StreamExt;
 
 #[tokio::main]
 async fn main() {
@@ -16,7 +17,8 @@ async fn main() {
         .with_credentials(Credentials::from_cookies(&cookies).unwrap())
         .build();
 
-    for battle_record in sdk.iter_battle_records(1).await.unwrap() {
-        println!("{:?}", battle_record);
+    let mut battle_records_stream = sdk.iter_battle_records().await;
+    while let Some(battle_record) = battle_records_stream.next().await {
+        println!("{:#?}", battle_record.unwrap());
     }
 }
