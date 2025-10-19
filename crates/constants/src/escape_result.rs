@@ -1,4 +1,6 @@
-#[derive(Debug)]
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
 pub enum EscapeResult {
     EscapeSuccess,
     KilledByOperator,

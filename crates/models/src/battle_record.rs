@@ -2,9 +2,10 @@ use constants::escape_result::EscapeResult;
 use constants::level::Level;
 use constants::map::Map;
 use constants::operator::Operator;
+use serde::Serialize;
 use time::PrimitiveDateTime;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct BattleRecord {
     pub id: String,
     pub time: PrimitiveDateTime,
@@ -20,7 +21,7 @@ pub struct BattleRecord {
     pub teammates: Vec<Teammate>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Teammate {
     pub operator: Operator,
     pub escape_result: EscapeResult,

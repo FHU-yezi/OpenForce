@@ -1,5 +1,7 @@
+use serde::Serialize;
+
 // 非官方翻译（官方为 Easy / Normal / Hard）
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum Level {
     Normal,
     Secret,
