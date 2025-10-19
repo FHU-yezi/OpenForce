@@ -1,3 +1,5 @@
+use crate::error::Error;
+
 pub struct Credentials<'a> {
     account_type: &'a str,
     open_id: &'a str,
@@ -5,7 +7,7 @@ pub struct Credentials<'a> {
 }
 
 impl<'a> Credentials<'a> {
-    pub fn from_cookies(cookies_string: &'a str) -> Result<Self, String> {
+    pub fn from_cookies(cookies_string: &'a str) -> Result<Self, Error> {
         let mut account_type: Option<&str> = None;
         let mut open_id: Option<&str> = None;
         let mut access_token: Option<&str> = None;
@@ -33,7 +35,7 @@ impl<'a> Credentials<'a> {
                 access_token,
             })
         } else {
-            Err("Cookies 缺少鉴权信息".into())
+            Err(Error::InvalidCredentials)
         }
     }
 

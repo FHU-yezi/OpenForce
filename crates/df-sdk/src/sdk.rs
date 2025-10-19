@@ -1,9 +1,11 @@
 use crate::credentials::Credentials;
 use reqwest::Client;
 use reqwest::Url;
+use reqwest::header::HeaderMap;
+use reqwest::header::HeaderValue;
 
 pub struct DeltaForceSdk<'a> {
-    pub base_url: Url,
+    pub endpoint: Url,
     pub credentials: Option<Credentials<'a>>,
     pub client: Client,
 }
@@ -15,7 +17,7 @@ impl<'a> DeltaForceSdk<'a> {
 }
 
 pub struct DeltaForceSdkBuilder<'a> {
-    base_url: Url,
+    endpoint: Url,
     credentials: Option<Credentials<'a>>,
     client: Client,
 }
@@ -23,14 +25,22 @@ pub struct DeltaForceSdkBuilder<'a> {
 impl<'a> DeltaForceSdkBuilder<'a> {
     pub fn new() -> Self {
         Self {
-            base_url: Url::parse("https://comm.ams.game.qq.com").unwrap(),
+            endpoint: Url::parse("https://comm.ams.game.qq.com/ide/").unwrap(),
             credentials: None,
-            client: Client::new(),
+            client: {
+                let mut headers = HeaderMap::new();
+                headers.insert(
+                    "Content-Type",
+                    HeaderValue::from_static("application/x-www-form-urlencoded"),
+                );
+
+                Client::builder().default_headers(headers).build().unwrap()
+            },
         }
     }
 
-    pub fn base_url(mut self, x: &str) -> Self {
-        self.base_url = Url::parse(x).unwrap();
+    pub fn endpoint(mut self, x: &str) -> Self {
+        self.endpoint = Url::parse(x).unwrap();
         self
     }
 
@@ -41,7 +51,7 @@ impl<'a> DeltaForceSdkBuilder<'a> {
 
     pub fn build(self) -> DeltaForceSdk<'a> {
         DeltaForceSdk {
-            base_url: self.base_url,
+            endpoint: self.endpoint,
             credentials: self.credentials,
             client: self.client,
         }
