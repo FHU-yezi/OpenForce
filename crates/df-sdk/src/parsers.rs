@@ -7,6 +7,16 @@ pub fn parse_str(x: &Value) -> Result<String, String> {
         .map(|x| x.to_string())
 }
 
+pub fn parse_int<T>(x: &Value) -> Result<T, String>
+where
+    T: TryFrom<i64>,
+    <T as TryFrom<i64>>::Error: std::fmt::Display,
+{
+    x.as_i64()
+        .ok_or("转换 int 类型失败".to_string())
+        .and_then(|x| T::try_from(x).map_err(|e| format!("转换 int 类型失败：{e}")))
+}
+
 pub fn parse_uint<T>(x: &Value) -> Result<T, String>
 where
     T: TryFrom<u64>,

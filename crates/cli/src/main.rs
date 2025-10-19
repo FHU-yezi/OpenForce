@@ -16,7 +16,7 @@ async fn main() {
         .with_credentials(Credentials::from_cookies(&cookies).unwrap())
         .build();
 
-    for battle_record in sdk.iter_battle_records().await.unwrap() {
+    for battle_record in sdk.iter_battle_records(1).await.unwrap() {
         println!("{:?}", battle_record);
     }
 }

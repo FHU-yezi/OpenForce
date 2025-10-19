@@ -17,5 +17,15 @@ pub struct BattleRecord {
     pub kill_bots_count: u16,
     pub escape_value: u32,
     pub net_profit: i32,
-    // pub teammates: Vec<Teammate>,
+    pub teammates: Vec<Teammate>,
+}
+
+#[derive(Debug)]
+pub struct Teammate {
+    pub operator: Operator,
+    pub escape_result: EscapeResult,
+    pub duration_seconds: u16,
+    pub kill_operators_count: u16,
+    pub kill_bots_count: u16,
+    pub escape_value: u32,
 }
