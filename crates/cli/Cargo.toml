@@ -3,6 +3,10 @@ name = "cli"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "ofcli"
+path = "src/main.rs"
+
 [dependencies]
 df-sdk = { path = "../df-sdk" }
 tokio = { version = "1.48.0", features = ["full"] }
