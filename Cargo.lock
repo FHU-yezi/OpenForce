@@ -72,7 +72,7 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "cli"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "df-sdk",
  "tokio",
@@ -81,7 +81,7 @@ dependencies = [
 
 [[package]]
 name = "constants"
-version = "0.1.0"
+version = "0.0.0"
 
 [[package]]
 name = "core-foundation"
@@ -110,7 +110,7 @@ dependencies = [
 
 [[package]]
 name = "df-sdk"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "async-stream",
  "constants",
@@ -606,7 +606,7 @@ dependencies = [
 
 [[package]]
 name = "models"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "constants",
  "time",
