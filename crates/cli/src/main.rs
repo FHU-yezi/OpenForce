@@ -4,8 +4,7 @@ use crate::commands::Commands;
 use clap::Parser;
 
 #[derive(Parser)]
-#[command(name = "ofcli")]
-#[command(version, about)]
+#[command(about = "OpenFront CLI")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,

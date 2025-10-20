@@ -1,22 +1,24 @@
-pub mod export;
+pub mod battle_record;
 
+use battle_record::BattleRecordCommands;
 use clap::Subcommand;
-use export::ExportCommands;
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// 导出数据
-    Export {
+    /// 对局记录
+    BattleRecord {
         #[command(subcommand)]
-        export_command: ExportCommands,
+        battle_record_command: BattleRecordCommands,
     },
 }
 
 impl Commands {
     pub async fn handle(self) {
         match self {
-            Commands::Export { export_command } => {
-                export_command.handle().await;
+            Commands::BattleRecord {
+                battle_record_command,
+            } => {
+                battle_record_command.handle().await;
             }
         }
     }
