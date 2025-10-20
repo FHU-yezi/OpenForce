@@ -42,7 +42,7 @@ impl EscapeResult {
             3 => Some(EscapeResult::KilledByBot),
             7 => Some(EscapeResult::MidwayExit),
             10 => Some(EscapeResult::KilledByOneself),
-            6 | 9 | 11 => Some(EscapeResult::EscapeSuccess),
+            4 | 6 | 9 | 11 => Some(EscapeResult::EscapeFailedUnknown),
             _ => None,
         }
     }
