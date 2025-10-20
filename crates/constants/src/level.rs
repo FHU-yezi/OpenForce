@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 // 非官方翻译（官方为 Easy / Normal / Hard）
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub enum Level {
     Normal,
     Secret,
@@ -45,5 +45,14 @@ impl Level {
             // TODO: 缺少终夜（零号大坝）的地图 ID
             _ => None,
         }
+    }
+}
+
+impl Serialize for Level {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
     }
 }

@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub enum Map {
     Dam,
     Forest,
@@ -41,5 +41,14 @@ impl Map {
             8803 => Some(Map::TidalPrison),
             _ => None,
         }
+    }
+}
+
+impl Serialize for Map {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
     }
 }

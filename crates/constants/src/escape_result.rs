@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub enum EscapeResult {
     EscapeSuccess,
     KilledByOperator,
@@ -45,5 +45,14 @@ impl EscapeResult {
             6 | 9 | 11 => Some(EscapeResult::EscapeSuccess),
             _ => None,
         }
+    }
+}
+
+impl Serialize for EscapeResult {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
     }
 }

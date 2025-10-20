@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub enum Operator {
     DWolf,
     Vyron,
@@ -72,5 +72,14 @@ impl Operator {
             40011 => Some(Operator::SilverWing),
             _ => None,
         }
+    }
+}
+
+impl Serialize for Operator {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
     }
 }
