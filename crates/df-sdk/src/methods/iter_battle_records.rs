@@ -8,10 +8,7 @@ use serde_json::Value;
 use std::pin::Pin;
 use tokio_stream::Stream;
 
-async fn get_battle_records_list<'a>(
-    sdk: &DeltaForceSdk<'a>,
-    page: u8,
-) -> Result<Vec<Value>, Error> {
+async fn get_battle_records_list(sdk: &DeltaForceSdk, page: u8) -> Result<Vec<Value>, Error> {
     let mut url = sdk.endpoint.clone();
     url.query_pairs_mut()
         .append_pair("iChartId", "450526")
@@ -37,10 +34,7 @@ async fn get_battle_records_list<'a>(
         .clone())
 }
 
-async fn get_battle_record_detail<'a>(
-    sdk: &DeltaForceSdk<'a>,
-    room_id: &str,
-) -> Result<Vec<Value>, Error> {
+async fn get_battle_record_detail(sdk: &DeltaForceSdk, room_id: &str) -> Result<Vec<Value>, Error> {
     let mut url = sdk.endpoint.join("/ide/").unwrap();
     url.query_pairs_mut()
         .append_pair("iChartId", "450471")
@@ -114,7 +108,7 @@ impl FromBattleRecordsListApi for BattleRecord {
     }
 }
 
-impl<'a> DeltaForceSdk<'a> {
+impl DeltaForceSdk {
     pub async fn iter_battle_records(
         &self,
     ) -> Pin<Box<dyn Stream<Item = Result<BattleRecord, Error>> + Send + '_>> {
