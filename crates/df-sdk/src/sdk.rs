@@ -4,25 +4,25 @@ use reqwest::Url;
 use reqwest::header::HeaderMap;
 use reqwest::header::HeaderValue;
 
-pub struct DeltaForceSdk<'a> {
+pub struct DeltaForceSdk {
     pub endpoint: Url,
-    pub credentials: Option<Credentials<'a>>,
+    pub credentials: Option<Credentials>,
     pub client: Client,
 }
 
-impl<'a> DeltaForceSdk<'a> {
-    pub fn build() -> DeltaForceSdkBuilder<'a> {
+impl DeltaForceSdk {
+    pub fn build() -> DeltaForceSdkBuilder {
         DeltaForceSdkBuilder::new()
     }
 }
 
-pub struct DeltaForceSdkBuilder<'a> {
+pub struct DeltaForceSdkBuilder {
     endpoint: Url,
-    credentials: Option<Credentials<'a>>,
+    credentials: Option<Credentials>,
     client: Client,
 }
 
-impl<'a> DeltaForceSdkBuilder<'a> {
+impl DeltaForceSdkBuilder {
     pub fn new() -> Self {
         Self {
             endpoint: Url::parse("https://comm.ams.game.qq.com/ide/").unwrap(),
@@ -44,12 +44,12 @@ impl<'a> DeltaForceSdkBuilder<'a> {
         self
     }
 
-    pub fn with_credentials(mut self, x: Credentials<'a>) -> Self {
+    pub fn with_credentials(mut self, x: Credentials) -> Self {
         self.credentials = Some(x);
         self
     }
 
-    pub fn build(self) -> DeltaForceSdk<'a> {
+    pub fn build(self) -> DeltaForceSdk {
         DeltaForceSdk {
             endpoint: self.endpoint,
             credentials: self.credentials,

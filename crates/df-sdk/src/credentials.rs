@@ -1,13 +1,13 @@
 use crate::error::Error;
 
-pub struct Credentials<'a> {
-    account_type: &'a str,
-    open_id: &'a str,
-    access_token: &'a str,
+pub struct Credentials {
+    account_type: String,
+    open_id: String,
+    access_token: String,
 }
 
-impl<'a> Credentials<'a> {
-    pub fn from_cookies(cookies_string: &'a str) -> Result<Self, Error> {
+impl Credentials {
+    pub fn from_cookies(cookies_string: &str) -> Result<Self, Error> {
         let mut account_type: Option<&str> = None;
         let mut open_id: Option<&str> = None;
         let mut access_token: Option<&str> = None;
@@ -30,9 +30,9 @@ impl<'a> Credentials<'a> {
             (account_type, open_id, access_token)
         {
             Ok(Self {
-                account_type,
-                open_id,
-                access_token,
+                account_type: account_type.to_string(),
+                open_id: open_id.to_string(),
+                access_token: access_token.to_string(),
             })
         } else {
             Err(Error::InvalidCredentials)
