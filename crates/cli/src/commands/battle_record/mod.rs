@@ -1,6 +1,7 @@
 pub mod list;
 
 use clap::Subcommand;
+use df_sdk::sdk::DeltaForceSdk;
 use list::list;
 
 use crate::utils::parse_datetime;
@@ -25,7 +26,7 @@ pub enum BattleRecordCommands {
 }
 
 impl BattleRecordCommands {
-    pub async fn handle(self) {
+    pub async fn handle(self, sdk: DeltaForceSdk) {
         match self {
             BattleRecordCommands::List {
                 limit,
@@ -34,12 +35,12 @@ impl BattleRecordCommands {
             } => match since {
                 Some(since) => {
                     if let Some(parsed_since) = parse_datetime(&since) {
-                        list(limit, Some(parsed_since), pretty).await;
+                        list(sdk, limit, Some(parsed_since), pretty).await;
                     } else {
                         eprintln!("解析 --since 参数失败")
                     }
                 }
-                None => list(limit, None, pretty).await,
+                None => list(sdk, limit, None, pretty).await,
             },
         }
     }

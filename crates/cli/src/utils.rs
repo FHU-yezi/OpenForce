@@ -1,16 +1,48 @@
-use std::io::{Write, stdin, stdout};
+use std::io::stdin;
 
+use df_sdk::credentials::Credentials;
+use df_sdk::error::Error as SdkError;
+use std::fs;
 use time::{Date, PrimitiveDateTime, Time, macros::format_description};
 
-// TODO: 支持从命令行参数、文件中传递 Cookies
-pub fn get_cookies() -> String {
-    print!("请输入 Cookies：");
-    stdout().flush().unwrap();
+use crate::Cli;
 
-    let mut cookies = String::new();
-    stdin().read_line(&mut cookies).unwrap();
+pub fn get_credentials(cli: &Cli) -> Result<Credentials, SdkError> {
+    let mut cookies_providers_count = 0;
+    if cli.cookies.is_some() {
+        cookies_providers_count += 1;
+    };
+    if cli.cookies_file.is_some() {
+        cookies_providers_count += 1;
+    };
+    if cli.cookies_stdin {
+        cookies_providers_count += 1;
+    }
+    if cookies_providers_count == 0 {
+        panic!("没有 Cookies 来源");
+    }
+    if cookies_providers_count > 1 {
+        panic!("不能同时指定多个 Cookies 来源");
+    }
 
-    cookies
+    if let Some(cookies) = &cli.cookies {
+        return Credentials::from_cookies(cookies);
+    }
+
+    if let Some(cookies_file) = &cli.cookies_file {
+        let cookies = fs::read_to_string(cookies_file).expect("读取 Cookies 文件失败");
+        return Credentials::from_cookies(&cookies);
+    }
+
+    if cli.cookies_stdin {
+        let mut cookies = String::new();
+        stdin()
+            .read_line(&mut cookies)
+            .expect("从标准输入读取 Cookies 失败");
+        return Credentials::from_cookies(&cookies);
+    }
+
+    unreachable!();
 }
 
 pub fn parse_datetime(x: &str) -> Option<PrimitiveDateTime> {

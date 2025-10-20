@@ -1,10 +1,7 @@
-use df_sdk::credentials::Credentials;
 use df_sdk::sdk::DeltaForceSdk;
 use models::battle_record::BattleRecord;
 use time::PrimitiveDateTime;
 use tokio_stream::StreamExt;
-
-use crate::utils::get_cookies;
 
 fn serialize(data: &BattleRecord, pretty: bool) -> Result<String, serde_json::Error> {
     if pretty {
@@ -36,19 +33,12 @@ fn process_record(
     }
 }
 
-pub async fn list(limit: Option<usize>, since: Option<PrimitiveDateTime>, pretty: bool) {
-    let cookies = get_cookies();
-
-    let credentials = match Credentials::from_cookies(&cookies) {
-        Ok(creds) => creds,
-        Err(e) => {
-            eprintln!("创建凭证失败：{}", e);
-            return;
-        }
-    };
-
-    let sdk = DeltaForceSdk::build().with_credentials(credentials).build();
-
+pub async fn list(
+    sdk: DeltaForceSdk,
+    limit: Option<usize>,
+    since: Option<PrimitiveDateTime>,
+    pretty: bool,
+) {
     let mut stream = sdk.iter_battle_records().await;
     if let Some(x) = limit {
         stream = Box::pin(stream.take(x));

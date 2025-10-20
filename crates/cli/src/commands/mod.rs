@@ -2,6 +2,7 @@ pub mod battle_record;
 
 use battle_record::BattleRecordCommands;
 use clap::Subcommand;
+use df_sdk::sdk::DeltaForceSdk;
 
 #[derive(Subcommand)]
 pub enum Commands {
@@ -13,12 +14,12 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn handle(self) {
+    pub async fn handle(self, sdk: DeltaForceSdk) {
         match self {
             Commands::BattleRecord {
                 battle_record_command,
             } => {
-                battle_record_command.handle().await;
+                battle_record_command.handle(sdk).await;
             }
         }
     }
