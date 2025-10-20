@@ -1,4 +1,5 @@
 mod commands;
+mod error;
 mod utils;
 
 use crate::commands::Commands;
@@ -28,7 +29,13 @@ struct Cli {
 async fn main() {
     let cli = Cli::parse();
 
-    let credentials = utils::get_credentials(&cli).unwrap();
+    let credentials = match utils::get_credentials(&cli) {
+        Ok(x) => x,
+        Err(e) => {
+            eprintln!("{}", e);
+            return;
+        }
+    };
     let sdk = DeltaForceSdk::build().with_credentials(credentials).build();
 
     cli.command.handle(sdk).await;

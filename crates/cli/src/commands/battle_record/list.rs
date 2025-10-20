@@ -3,6 +3,8 @@ use models::battle_record::BattleRecord;
 use time::PrimitiveDateTime;
 use tokio_stream::StreamExt;
 
+use crate::error::Error;
+
 fn serialize(data: &BattleRecord, pretty: bool) -> Result<String, serde_json::Error> {
     if pretty {
         serde_json::to_string_pretty(data)
@@ -15,7 +17,7 @@ fn process_record(
     record: BattleRecord,
     since: Option<PrimitiveDateTime>,
     pretty: bool,
-) -> Result<bool, String> {
+) -> Result<bool, Error> {
     // 检查时间限制
     if let Some(dt_limit) = since {
         if record.time < dt_limit {
@@ -29,7 +31,7 @@ fn process_record(
             println!("{}", serialized_string);
             Ok(true) // 继续处理更多记录
         }
-        Err(e) => Err(format!("序列化为 JSON 失败：{}", e)),
+        Err(e) => Err(Error::SerializeError(e)),
     }
 }
 

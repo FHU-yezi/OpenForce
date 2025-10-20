@@ -1,4 +1,3 @@
-use reqwest::StatusCode;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -13,7 +12,7 @@ pub enum Error {
     RequestError(reqwest::Error),
 
     #[error("网络请求失败：HTTP Status {0}")]
-    HttpStatusError(StatusCode),
+    HttpStatusError(reqwest::StatusCode),
 
     #[error("反序列化异常：{0}")]
     DeserializeError(reqwest::Error),

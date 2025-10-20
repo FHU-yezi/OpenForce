@@ -1,13 +1,13 @@
 use std::io::stdin;
 
+use crate::error::Error;
 use df_sdk::credentials::Credentials;
-use df_sdk::error::Error as SdkError;
 use std::fs;
 use time::{Date, PrimitiveDateTime, Time, macros::format_description};
 
 use crate::Cli;
 
-pub fn get_credentials(cli: &Cli) -> Result<Credentials, SdkError> {
+pub fn get_credentials(cli: &Cli) -> Result<Credentials, Error> {
     let mut cookies_providers_count = 0;
     if cli.cookies.is_some() {
         cookies_providers_count += 1;
@@ -19,30 +19,36 @@ pub fn get_credentials(cli: &Cli) -> Result<Credentials, SdkError> {
         cookies_providers_count += 1;
     }
     if cookies_providers_count == 0 {
-        panic!("没有 Cookies 来源");
+        return Err(Error::InvaildArgument(
+            "必须指定一个 Cookies 来源".to_string(),
+        ));
     }
     if cookies_providers_count > 1 {
-        panic!("不能同时指定多个 Cookies 来源");
+        return Err(Error::InvaildArgument(
+            "不能同时指定多个 Cookies 来源".to_string(),
+        ));
     }
 
-    if let Some(cookies) = &cli.cookies {
-        return Credentials::from_cookies(cookies);
+    let mut cookies = String::new();
+
+    if let Some(x) = &cli.cookies {
+        cookies = x.clone();
     }
 
-    if let Some(cookies_file) = &cli.cookies_file {
-        let cookies = fs::read_to_string(cookies_file).expect("读取 Cookies 文件失败");
-        return Credentials::from_cookies(&cookies);
+    if let Some(x) = &cli.cookies_file {
+        cookies = fs::read_to_string(x)
+            .map_err(|e| Error::InvaildArgument(format!("读取 Cookies 文件失败：{e}")))?;
     }
 
     if cli.cookies_stdin {
-        let mut cookies = String::new();
+        let mut x = String::new();
         stdin()
-            .read_line(&mut cookies)
-            .expect("从标准输入读取 Cookies 失败");
-        return Credentials::from_cookies(&cookies);
+            .read_line(&mut x)
+            .map_err(|e| Error::InvaildArgument(format!("从标准输入读取 Cookies 失败：{e}")))?;
+        cookies = x;
     }
 
-    unreachable!();
+    Credentials::from_cookies(&cookies).map_err(|_| Error::InvalidCredentials)
 }
 
 pub fn parse_datetime(x: &str) -> Option<PrimitiveDateTime> {

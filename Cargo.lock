@@ -168,6 +168,7 @@ dependencies = [
  "df-sdk",
  "models",
  "serde_json",
+ "thiserror",
  "time",
  "tokio",
  "tokio-stream",
