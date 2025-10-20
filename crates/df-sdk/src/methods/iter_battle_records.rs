@@ -73,7 +73,8 @@ impl FromBattleRecordDetailApi for Teammate {
             kill_operators_count: parse_uint(&x["KillCount"])?,
             kill_bots_count: parse_uint(&x["KillAICount"])?,
             // 未知原因导致此字段有小概率为 null，此时会导致解析异常
-            // 对于此情况，字段为 null 时按 0 处理
+            // 我们没有可参考的信息对此值进行猜测（玩家和队友的带出价值没有相关性）
+            // 因此，字段为 null 时按 0 处理
             escape_value: match &x["FinalPrice"].as_null() {
                 Some(_) => 0,
                 None => parse_str_then_number(&x["FinalPrice"])?,
@@ -163,9 +164,16 @@ impl DeltaForceSdk {
 
                         if is_player {
                             // 未知原因导致此字段有小概率为 null，此时会导致解析异常
-                            // 对于此情况，字段为 null 时按 0 处理
+                            // 此时基于净收益（flowCalGainedPrice）猜测带出价值
+                            // 如果净收益为负值，假设带出价值为 0
+                            // 否则，假设带出价值等于净收益，即零损失 & 损耗
                             match &y["FinalPrice"].as_null() {
-                                Some(_) => escape_value = Some(0),
+                                Some(_) => {
+                                    escape_value = match parse_int::<i32>(&x["flowCalGainedPrice"])? {
+                                        negative if negative < 0 => Some(0),
+                                        non_negative => Some(non_negative as u32),
+                                    }
+                                },
                                 None => {
                                     match parse_str_then_number(&y["FinalPrice"]) {
                                         Ok(value) => escape_value = Some(value),
@@ -187,9 +195,16 @@ impl DeltaForceSdk {
                         }
                     }
 
+                    // 对于部分记录，对局详情数据可能为空
+                    // 因此 battle_details 的解析循环不会执行，从而导致 escape_value 为 None
+                    // 此时基于净收益（flowCalGainedPrice）猜测带出价值
+                    // 如果净收益为负值，假设带出价值为 0
+                    // 否则，假设带出价值等于净收益，即零损失 & 损耗
                     if escape_value.is_none() {
-                        yield Err(Error::ParseError);
-                        break;
+                        escape_value = match parse_int::<i32>(&x["flowCalGainedPrice"])? {
+                            negative if negative < 0 => Some(0),
+                            non_negative => Some(non_negative as u32),
+                        }
                     }
 
                     match BattleRecord::from_battle_records_list_api(&x, escape_value.unwrap(), teammates) {
