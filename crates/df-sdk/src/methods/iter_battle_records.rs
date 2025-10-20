@@ -72,7 +72,12 @@ impl FromBattleRecordDetailApi for Teammate {
             duration_seconds: parse_uint(&x["DurationS"])?,
             kill_operators_count: parse_uint(&x["KillCount"])?,
             kill_bots_count: parse_uint(&x["KillAICount"])?,
-            escape_value: parse_str_then_number(&x["FinalPrice"])?,
+            // 未知原因导致此字段有小概率为 null，此时会导致解析异常
+            // 对于此情况，字段为 null 时按 0 处理
+            escape_value: match &x["FinalPrice"].as_null() {
+                Some(_) => 0,
+                None => parse_str_then_number(&x["FinalPrice"])?,
+            },
         })
     }
 }
@@ -157,11 +162,18 @@ impl DeltaForceSdk {
                         };
 
                         if is_player {
-                            match parse_str_then_number(&y["FinalPrice"]) {
-                                Ok(value) => escape_value = Some(value),
-                                Err(e) => {
-                                    yield Err(e);
-                                    break;
+                            // 未知原因导致此字段有小概率为 null，此时会导致解析异常
+                            // 对于此情况，字段为 null 时按 0 处理
+                            match &y["FinalPrice"].as_null() {
+                                Some(_) => escape_value = Some(0),
+                                None => {
+                                    match parse_str_then_number(&y["FinalPrice"]) {
+                                        Ok(value) => escape_value = Some(value),
+                                        Err(e) => {
+                                            yield Err(e);
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         } else {
