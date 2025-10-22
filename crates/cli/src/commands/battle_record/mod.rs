@@ -19,7 +19,7 @@ pub enum BattleRecordCommands {
     #[command(arg_required_else_help = false)]
     List {
         /// 输出格式
-        #[arg(value_enum)]
+        #[arg(long, value_enum, default_value_t = OutputFormat::Default)]
         format: OutputFormat,
 
         /// 输出结果数量
