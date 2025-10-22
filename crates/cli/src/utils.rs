@@ -2,53 +2,62 @@ use std::io::stdin;
 
 use crate::error::Error;
 use df_sdk::credentials::Credentials;
+use std::env;
 use std::fs;
 use time::{Date, PrimitiveDateTime, Time, macros::format_description};
 
-use crate::Cli;
+use crate::CookiesArgs;
 
-pub fn get_credentials(cli: &Cli) -> Result<Credentials, Error> {
-    let mut cookies_providers_count = 0;
-    if cli.cookies.is_some() {
-        cookies_providers_count += 1;
-    };
-    if cli.cookies_file.is_some() {
-        cookies_providers_count += 1;
-    };
-    if cli.cookies_stdin {
-        cookies_providers_count += 1;
-    }
-    if cookies_providers_count == 0 {
-        return Err(Error::InvaildArgument(
-            "必须指定一个 Cookies 来源".to_string(),
-        ));
-    }
-    if cookies_providers_count > 1 {
-        return Err(Error::InvaildArgument(
-            "不能同时指定多个 Cookies 来源".to_string(),
-        ));
-    }
+const COOKIES_ENV_NAME: &str = "OPENFORCE_COOKIES";
 
+fn get_credentials_from_env() -> Result<Credentials, Error> {
+    match env::var(COOKIES_ENV_NAME) {
+        Ok(cookies) => Credentials::from_cookies(&cookies).map_err(|_| {
+            Error::InvalidCredentials(format!("从环境变量 {COOKIES_ENV_NAME} 读取的 Cookies 无效"))
+        }),
+        Err(env::VarError::NotPresent) => Err(Error::MissingCredentials(format!(
+            "未设置环境变量 {COOKIES_ENV_NAME}"
+        ))),
+        Err(_) => Err(Error::InvalidCredentials(format!(
+            "读取环境变量 {COOKIES_ENV_NAME} 时发生未知异常"
+        ))),
+    }
+}
+
+fn get_credentials_from_file(path: &str) -> Result<Credentials, Error> {
+    match fs::read_to_string(path) {
+        Ok(cookies) => Credentials::from_cookies(&cookies)
+            .map_err(|_| Error::InvalidCredentials(format!("从文件 {path} 读取的 Cookies 无效"))),
+        Err(_) => Err(Error::InvalidCredentials(format!(
+            "读取文件 {path} 时发生未知异常"
+        ))),
+    }
+}
+
+fn get_credentials_from_stdin() -> Result<Credentials, Error> {
     let mut cookies = String::new();
 
-    if let Some(x) = &cli.cookies {
-        cookies = x.clone();
+    match stdin().read_line(&mut cookies) {
+        Ok(_) => Credentials::from_cookies(&cookies)
+            .map_err(|_| Error::InvalidCredentials("从标准输入读取的 Cookies 无效".to_string())),
+        Err(_) => Err(Error::InvalidCredentials(
+            "读取标准输入时发生未知异常".to_string(),
+        )),
     }
+}
 
-    if let Some(x) = &cli.cookies_file {
-        cookies = fs::read_to_string(x)
-            .map_err(|e| Error::InvaildArgument(format!("读取 Cookies 文件失败：{e}")))?;
+pub fn get_credentials(cookies_args: &CookiesArgs) -> Result<Credentials, Error> {
+    // 如果用户提供了具体的 Cookies 来源，仅从对应来源读取
+    // 否则，仅从环境变量读取
+    if cookies_args.cookies_env {
+        get_credentials_from_env()
+    } else if let Some(path) = &cookies_args.cookies_file {
+        get_credentials_from_file(path)
+    } else if cookies_args.cookies_stdin {
+        get_credentials_from_stdin()
+    } else {
+        get_credentials_from_env()
     }
-
-    if cli.cookies_stdin {
-        let mut x = String::new();
-        stdin()
-            .read_line(&mut x)
-            .map_err(|e| Error::InvaildArgument(format!("从标准输入读取 Cookies 失败：{e}")))?;
-        cookies = x;
-    }
-
-    Credentials::from_cookies(&cookies).map_err(|_| Error::InvalidCredentials)
 }
 
 pub fn parse_datetime(x: &str) -> Option<PrimitiveDateTime> {
