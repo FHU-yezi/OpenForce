@@ -1,7 +1,6 @@
 use crate::error::Error;
 use crate::parsers::*;
 use crate::sdk::DeltaForceSdk;
-use crate::utils::extract_data;
 use async_stream::stream;
 use models::battle_record::{BattleRecord, Teammate};
 use serde_json::Value;
@@ -9,62 +8,43 @@ use std::pin::Pin;
 use tokio_stream::Stream;
 
 async fn get_battle_records_list(sdk: &DeltaForceSdk, page: u8) -> Result<Vec<Value>, Error> {
-    let mut url = sdk.endpoint.clone();
-    url.query_pairs_mut()
-        .append_pair("iChartId", "450526")
-        .append_pair("iSubChartId", "450526")
-        .append_pair("sIdeToken", "PHq59Y")
-        .append_pair("type", "4")
-        .append_pair("page", &page.to_string());
-
-    let request = sdk.client.post(url).header(
-        "Cookie",
-        &sdk.credentials
-            .as_ref()
-            .ok_or(Error::MissingCredentials)?
-            .to_cookies(),
-    );
-
-    let response = request.send().await.map_err(|e| Error::RequestError(e))?;
-
-    Ok(extract_data(response)
+    Ok(sdk
+        .send_api_request(&[
+            ("iChartId", "450526"),
+            ("iSubChartId", "450526"),
+            ("sIdeToken", "PHq59Y"),
+            ("type", "4"),
+            ("page", &page.to_string()),
+        ])
         .await?
         .as_array()
         .ok_or(Error::ParseError)?
         .clone())
 }
 
-async fn get_battle_record_detail(sdk: &DeltaForceSdk, room_id: &str) -> Result<Vec<Value>, Error> {
-    let mut url = sdk.endpoint.join("/ide/").unwrap();
-    url.query_pairs_mut()
-        .append_pair("iChartId", "450471")
-        .append_pair("iSubChartId", "450471")
-        .append_pair("sIdeToken", "ylP3eG")
-        .append_pair("roomId", room_id)
-        .append_pair("type", "2");
-
-    let request = sdk.client.post(url).header(
-        "Cookie",
-        sdk.credentials
-            .as_ref()
-            .ok_or(Error::MissingCredentials)?
-            .to_cookies(),
-    );
-
-    let response = request.send().await.map_err(|e| Error::RequestError(e))?;
-
-    Ok(extract_data(response)
+async fn get_battle_record_details(
+    sdk: &DeltaForceSdk,
+    room_id: &str,
+) -> Result<Vec<Value>, Error> {
+    Ok(sdk
+        .send_api_request(&[
+            ("iChartId", "450471"),
+            ("iSubChartId", "450471"),
+            ("sIdeToken", "ylP3eG"),
+            ("roomId", room_id),
+            ("type", "2"),
+        ])
         .await?
         .as_array()
         .ok_or(Error::ParseError)?
         .clone())
 }
 
-trait FromBattleRecordDetailApi: Sized {
+trait FromBattleRecordDetailsApi: Sized {
     fn from_battle_record_detail_api(x: &Value) -> Result<Self, Error>;
 }
 
-impl FromBattleRecordDetailApi for Teammate {
+impl FromBattleRecordDetailsApi for Teammate {
     fn from_battle_record_detail_api(x: &Value) -> Result<Self, Error> {
         Ok(Teammate {
             operator: parse_operator_id(&x["ArmedForceId"])?,
@@ -114,6 +94,15 @@ impl FromBattleRecordsListApi for BattleRecord {
     }
 }
 
+fn estimate_escape_value(net_profit: i32) -> u32 {
+    // 如果净收益为负值，假设带出价值为 0
+    // 否则，假设带出价值等于净收益，即零损失 & 损耗
+    match net_profit {
+        negative if negative < 0 => 0,
+        non_negative => non_negative as u32,
+    }
+}
+
 impl DeltaForceSdk {
     pub async fn iter_battle_records(
         &self,
@@ -142,7 +131,7 @@ impl DeltaForceSdk {
                         }
                     };
 
-                    let battle_details = match get_battle_record_detail(&self, &room_id).await {
+                    let battle_details = match get_battle_record_details(&self, &room_id).await {
                         Ok(details) => details,
                         Err(e) => {
                             yield Err(e);
@@ -164,16 +153,9 @@ impl DeltaForceSdk {
 
                         if is_player {
                             // 未知原因导致此字段有小概率为 null，此时会导致解析异常
-                            // 此时基于净收益（flowCalGainedPrice）猜测带出价值
-                            // 如果净收益为负值，假设带出价值为 0
-                            // 否则，假设带出价值等于净收益，即零损失 & 损耗
+                            // 此时基于净收益（flowCalGainedPrice）估计带出价值
                             match &y["FinalPrice"].as_null() {
-                                Some(_) => {
-                                    escape_value = match parse_int::<i32>(&x["flowCalGainedPrice"])? {
-                                        negative if negative < 0 => Some(0),
-                                        non_negative => Some(non_negative as u32),
-                                    }
-                                },
+                                Some(_) => escape_value = Some(estimate_escape_value(parse_int::<i32>(&x["flowCalGainedPrice"])?)),
                                 None => {
                                     match parse_str_then_number(&y["FinalPrice"]) {
                                         Ok(value) => escape_value = Some(value),
@@ -197,14 +179,9 @@ impl DeltaForceSdk {
 
                     // 对于部分记录，对局详情数据可能为空
                     // 因此 battle_details 的解析循环不会执行，从而导致 escape_value 为 None
-                    // 此时基于净收益（flowCalGainedPrice）猜测带出价值
-                    // 如果净收益为负值，假设带出价值为 0
-                    // 否则，假设带出价值等于净收益，即零损失 & 损耗
+                    // 此时基于净收益（flowCalGainedPrice）估计带出价值
                     if escape_value.is_none() {
-                        escape_value = match parse_int::<i32>(&x["flowCalGainedPrice"])? {
-                            negative if negative < 0 => Some(0),
-                            non_negative => Some(non_negative as u32),
-                        }
+                        escape_value = Some(estimate_escape_value(parse_int::<i32>(&x["flowCalGainedPrice"])?));
                     }
 
                     match BattleRecord::from_battle_records_list_api(&x, escape_value.unwrap(), teammates) {
