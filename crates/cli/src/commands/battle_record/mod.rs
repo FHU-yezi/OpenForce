@@ -3,6 +3,7 @@ pub mod list;
 use clap::{Subcommand, ValueEnum};
 use df_sdk::sdk::DeltaForceSdk;
 use list::list;
+use time::PrimitiveDateTime;
 
 use crate::utils::parse_datetime;
 
@@ -27,8 +28,8 @@ pub enum BattleRecordCommands {
         limit: Option<usize>,
 
         /// 仅输出该日期后的对局记录
-        #[arg(long)]
-        since: Option<String>,
+        #[arg(long, value_parser = parse_datetime)]
+        since: Option<PrimitiveDateTime>,
     },
 }
 
@@ -39,16 +40,9 @@ impl BattleRecordCommands {
                 format,
                 limit,
                 since,
-            } => match since {
-                Some(since) => {
-                    if let Some(parsed_since) = parse_datetime(&since) {
-                        list(sdk, format, limit, Some(parsed_since)).await;
-                    } else {
-                        eprintln!("解析 --since 参数失败")
-                    }
-                }
-                None => list(sdk, format, limit, None).await,
-            },
+            } => {
+                list(sdk, format, limit, since).await;
+            }
         }
     }
 }

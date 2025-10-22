@@ -4,6 +4,7 @@ use crate::error::Error;
 use df_sdk::credentials::Credentials;
 use std::env;
 use std::fs;
+use time::OffsetDateTime;
 use time::{Date, PrimitiveDateTime, Time, macros::format_description};
 
 use crate::CookiesArgs;
@@ -60,7 +61,8 @@ pub fn get_credentials(cookies_args: &CookiesArgs) -> Result<Credentials, Error>
     }
 }
 
-pub fn parse_datetime(x: &str) -> Option<PrimitiveDateTime> {
+pub fn parse_datetime(x: &str) -> Result<PrimitiveDateTime, String> {
+    let date_format = format_description!("[year]-[month]-[day]");
     let formats = [
         format_description!("[year]-[month]-[day] [hour]:[minute]"),
         format_description!("[year]-[month]-[day] [hour]:[minute]:[second]"),
@@ -70,15 +72,31 @@ pub fn parse_datetime(x: &str) -> Option<PrimitiveDateTime> {
     // 尝试解析完整的日期时间格式
     for format in formats {
         if let Ok(result) = PrimitiveDateTime::parse(x, format) {
-            return Some(result);
+            return Ok(result);
         }
     }
 
     // 尝试解析日期格式，添加默认时间
-    if let Ok(date) = Date::parse(x, format_description!("[year]-[month]-[day]")) {
+    if let Ok(date) = Date::parse(x, date_format) {
         let time = Time::from_hms(0, 0, 0).unwrap();
-        return Some(PrimitiveDateTime::new(date, time));
+        return Ok(PrimitiveDateTime::new(date, time));
     }
 
-    None
+    let time_now = OffsetDateTime::now_local().unwrap();
+    let all_formats = [date_format]
+        .into_iter()
+        .chain(formats.into_iter())
+        .collect::<Vec<_>>();
+    let supported_format_examples = all_formats
+        .iter()
+        .map(|format| time_now.format(format).unwrap())
+        .collect::<Vec<_>>()
+        .join("\n    - ");
+
+    Err(format!(
+        r#"
+支持的时间格式：
+    - {}"#,
+        supported_format_examples
+    ))
 }
