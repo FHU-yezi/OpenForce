@@ -9,13 +9,13 @@ use df_sdk::sdk::DeltaForceSdk;
 #[derive(Args)]
 #[group(multiple = false)]
 struct CookiesArgs {
-    // 从环境变量 OPENFORCE_COOKIES 读取 Cookies
+    /// 从环境变量 OPENFORCE_COOKIES 读取 Cookies
     #[arg(long)]
     cookies_env: bool,
-    // 从指定文件读取 Cookies
+    /// 从指定文件读取 Cookies
     #[arg(long)]
     cookies_file: Option<String>,
-    // 从标准输入读取 Cookies
+    /// 从标准输入读取 Cookies
     #[arg(long)]
     cookies_stdin: bool,
 }
