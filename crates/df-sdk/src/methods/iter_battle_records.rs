@@ -41,11 +41,11 @@ async fn get_battle_record_details(
 }
 
 trait FromBattleRecordDetailsApi: Sized {
-    fn from_battle_record_detail_api(x: &Value) -> Result<Self, Error>;
+    fn from_battle_record_details_api(x: &Value) -> Result<Self, Error>;
 }
 
 impl FromBattleRecordDetailsApi for Teammate {
-    fn from_battle_record_detail_api(x: &Value) -> Result<Self, Error> {
+    fn from_battle_record_details_api(x: &Value) -> Result<Self, Error> {
         Ok(Teammate {
             operator: parse_operator_id(&x["ArmedForceId"])?,
             escape_result: parse_escape_result(&x["EscapeFailReason"])?,
@@ -167,7 +167,7 @@ impl DeltaForceSdk {
                                 }
                             }
                         } else {
-                            match Teammate::from_battle_record_detail_api(&y) {
+                            match Teammate::from_battle_record_details_api(&y) {
                                 Ok(teammate) => teammates.push(teammate),
                                 Err(e) => {
                                     yield Err(e);
