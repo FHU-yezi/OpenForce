@@ -9,77 +9,67 @@ use crate::parsers::{
 };
 use crate::sdk::DeltaForceSdk;
 
-trait FromBattleRecordDetailsApi: Sized {
-    fn from_battle_record_details_api(
-        x: &Value,
-        room_id: &str,
-        teammates: Vec<Teammate>,
-    ) -> Result<Self, Error>;
-}
-
-impl FromBattleRecordDetailsApi for BattleRecord {
-    fn from_battle_record_details_api(
-        x: &Value,
-        room_id: &str,
-        teammates: Vec<Teammate>,
-    ) -> Result<Self, Error> {
-        Ok(BattleRecord {
-            id: room_id.to_string(),
-            time: parse_time(&x["dtEventTime"])?,
-            map: parse_map_id_to_map(&x["MapId"])?,
-            level: parse_map_id_to_level(&x["MapId"])?,
-            operator: parse_operator_id(&x["ArmedForceId"])?,
-            escape_result: parse_escape_result(&x["EscapeFailReason"])?,
-            duration_seconds: parse_uint(&x["DurationS"])?,
-            kill_operators_count: parse_uint(&x["KillCount"])?,
-            kill_bots_count: parse_uint(&x["KillAICount"])?,
-            escape_value: parse_str_then_number(&x["FinalPrice"])?,
-            // TODO: 该接口无净收益参数
-            net_profit: parse_str_then_number(&x["FinalPrice"])?,
-            teammates,
-        })
-    }
-}
-
-fn parse_teammate(x: &Value) -> Result<Teammate, Error> {
+fn parse_teammate(data: &Value) -> Result<Teammate, Error> {
     Ok(Teammate {
-        operator: parse_operator_id(&x["ArmedForceId"])?,
-        escape_result: parse_escape_result(&x["EscapeFailReason"])?,
-        duration_seconds: parse_uint(&x["DurationS"])?,
-        kill_operators_count: parse_uint(&x["KillCount"])?,
-        kill_bots_count: parse_uint(&x["KillAICount"])?,
+        operator: parse_operator_id(&data["ArmedForceId"])?,
+        escape_result: parse_escape_result(&data["EscapeFailReason"])?,
+        duration_seconds: parse_uint(&data["DurationS"])?,
+        kill_operators_count: parse_uint(&data["KillCount"])?,
+        kill_bots_count: parse_uint(&data["KillAICount"])?,
         // 未知原因导致此字段有小概率为 null，此时会导致解析异常
         // 我们没有可参考的信息对此值进行猜测（玩家和队友的带出价值没有相关性）
         // 因此，字段为 null 时按 0 处理
-        escape_value: match &x["FinalPrice"].as_null() {
+        escape_value: match &data["FinalPrice"].as_null() {
             Some(_) => 0,
-            None => parse_str_then_number(&x["FinalPrice"])?,
+            None => parse_str_then_number(&data["FinalPrice"])?,
         },
+    })
+}
+
+fn parse_battle_record(
+    data: &Value,
+    room_id: &str,
+    teammates: Vec<Teammate>,
+) -> Result<BattleRecord, Error> {
+    Ok(BattleRecord {
+        id: room_id.to_string(),
+        time: parse_time(&data["dtEventTime"])?,
+        map: parse_map_id_to_map(&data["MapId"])?,
+        level: parse_map_id_to_level(&data["MapId"])?,
+        operator: parse_operator_id(&data["ArmedForceId"])?,
+        escape_result: parse_escape_result(&data["EscapeFailReason"])?,
+        duration_seconds: parse_uint(&data["DurationS"])?,
+        kill_operators_count: parse_uint(&data["KillCount"])?,
+        kill_bots_count: parse_uint(&data["KillAICount"])?,
+        escape_value: parse_str_then_number(&data["FinalPrice"])?,
+        // TODO: 该接口无净收益参数
+        net_profit: parse_str_then_number(&data["FinalPrice"])?,
+        teammates,
     })
 }
 
 impl DeltaForceSdk {
     pub async fn get_battle_record_details(&self, room_id: &str) -> Result<BattleRecord, Error> {
-        let battle_record_details = get_battle_record_details_api(self, room_id).await?;
-        if battle_record_details.len() == 0 {
+        let battle_record = get_battle_record_details_api(self, room_id).await?;
+        if battle_record.len() == 0 {
             // TODO: 添加数据为空时的独立错误
             return Err(Error::ParseError);
         }
 
         let mut teammates = Vec::new();
-        let mut player_data: Option<Value> = None;
-        for x in battle_record_details {
-            let is_player = x["vopenid"].as_bool().ok_or(Error::ParseError)?;
+        let mut current_user_data: Option<Value> = None;
+        for player_data in battle_record {
+            let is_current_user = player_data["vopenid"].as_bool().ok_or(Error::ParseError)?;
 
-            if is_player {
-                player_data = Some(x);
+            if is_current_user {
+                current_user_data = Some(player_data);
             } else {
-                teammates.push(parse_teammate(&x)?);
+                teammates.push(parse_teammate(&player_data)?);
             }
         }
 
-        Ok(BattleRecord::from_battle_record_details_api(
-            &player_data.unwrap(),
+        Ok(parse_battle_record(
+            &current_user_data.unwrap(),
             room_id,
             teammates,
         )?)
