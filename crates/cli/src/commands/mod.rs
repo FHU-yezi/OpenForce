@@ -6,6 +6,8 @@ use clap::Subcommand;
 use df_sdk::sdk::DeltaForceSdk;
 use room_password::RoomPasswordCommands;
 
+use crate::OutputFormat;
+
 #[derive(Subcommand)]
 pub enum Commands {
     /// 对局记录
@@ -21,14 +23,14 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn handle(self, sdk: DeltaForceSdk) {
+    pub async fn handle(self, sdk: DeltaForceSdk, format: OutputFormat) {
         match self {
             Commands::BattleRecord {
                 battle_record_command,
-            } => battle_record_command.handle(sdk).await,
+            } => battle_record_command.handle(sdk, format).await,
             Commands::RoomPassword {
                 room_password_command,
-            } => room_password_command.handle(sdk).await,
+            } => room_password_command.handle(sdk, format).await,
         }
     }
 }

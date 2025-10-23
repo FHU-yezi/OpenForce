@@ -4,6 +4,8 @@ use clap::Subcommand;
 use df_sdk::sdk::DeltaForceSdk;
 use get::get;
 
+use crate::OutputFormat;
+
 #[derive(Subcommand)]
 pub enum RoomPasswordCommands {
     /// 获取房间密码
@@ -12,9 +14,9 @@ pub enum RoomPasswordCommands {
 }
 
 impl RoomPasswordCommands {
-    pub async fn handle(self, sdk: DeltaForceSdk) {
+    pub async fn handle(self, sdk: DeltaForceSdk, format: OutputFormat) {
         match self {
-            RoomPasswordCommands::Get => get(sdk).await,
+            RoomPasswordCommands::Get => get(sdk, format).await,
         }
     }
 }

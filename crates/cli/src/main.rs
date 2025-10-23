@@ -3,7 +3,7 @@ mod error;
 mod utils;
 
 use crate::commands::Commands;
-use clap::{Args, Parser};
+use clap::{Args, Parser, ValueEnum};
 use df_sdk::sdk::DeltaForceSdk;
 
 #[derive(Args)]
@@ -20,6 +20,13 @@ struct CookiesArgs {
     cookies_stdin: bool,
 }
 
+#[derive(Clone, ValueEnum)]
+pub enum OutputFormat {
+    Default,
+    Json,
+    JsonPretty,
+}
+
 #[derive(Parser)]
 #[command(about = "OpenFront CLI")]
 struct Cli {
@@ -28,6 +35,10 @@ struct Cli {
 
     #[command(flatten)]
     cookies: CookiesArgs,
+
+    /// 输出格式
+    #[arg(long, value_enum, default_value_t = OutputFormat::Default)]
+    format: OutputFormat,
 }
 
 #[tokio::main]
@@ -47,5 +58,5 @@ async fn main() {
     }
     let sdk = sdk_builder.build();
 
-    cli.command.handle(sdk).await;
+    cli.command.handle(sdk, cli.format).await;
 }
