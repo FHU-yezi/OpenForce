@@ -3,10 +3,10 @@ use serde_json::Value;
 
 use crate::apis::room_password::get_room_password_list_api;
 use crate::error::Error;
-use crate::parsers::{parse_str, parse_str_then_number};
+use crate::parsers::parse_str;
 use crate::sdk::DeltaForceSdk;
 
-fn parse_room_password(data: &Vec<Value>) -> Result<Vec<(Map, u16)>, Error> {
+fn parse_room_password(data: &Vec<Value>) -> Result<Vec<(Map, String)>, Error> {
     let mut result = Vec::new();
 
     for room_password in data {
@@ -16,7 +16,7 @@ fn parse_room_password(data: &Vec<Value>) -> Result<Vec<(Map, u16)>, Error> {
                 result.push((
                     Map::from_str(&map_name)
                         .ok_or(Error::UnknownData(format!("未知的地图名称（{map_name}）")))?,
-                    parse_str_then_number(&x["secret"])?,
+                    parse_str(&x["secret"])?,
                 ));
             }
             None => return Err(Error::ParseError),
@@ -30,7 +30,7 @@ fn parse_room_password(data: &Vec<Value>) -> Result<Vec<(Map, u16)>, Error> {
 }
 
 impl DeltaForceSdk {
-    pub async fn get_room_password(&self) -> Result<Vec<(Map, u16)>, Error> {
+    pub async fn get_room_password(&self) -> Result<Vec<(Map, String)>, Error> {
         let room_password_list = get_room_password_list_api(self).await?;
 
         parse_room_password(&room_password_list)

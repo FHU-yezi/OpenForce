@@ -4,7 +4,7 @@ use df_sdk::sdk::DeltaForceSdk;
 use crate::OutputFormat;
 use crate::error::Error;
 
-fn output(room_password: &Vec<(Map, u16)>, format: &OutputFormat) -> Result<(), Error> {
+fn output(room_password: &Vec<(Map, String)>, format: &OutputFormat) -> Result<(), Error> {
     match format {
         OutputFormat::Default => {
             for (map, password) in room_password {
