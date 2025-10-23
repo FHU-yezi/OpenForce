@@ -1,3 +1,4 @@
+use crate::apis::battle_records::{get_battle_record_details_api, get_battle_records_list_api};
 use crate::error::Error;
 use crate::parsers::*;
 use crate::sdk::DeltaForceSdk;
@@ -6,39 +7,6 @@ use models::battle_record::{BattleRecord, Teammate};
 use serde_json::Value;
 use std::pin::Pin;
 use tokio_stream::Stream;
-
-async fn get_battle_records_list(sdk: &DeltaForceSdk, page: u8) -> Result<Vec<Value>, Error> {
-    Ok(sdk
-        .send_api_request(&[
-            ("iChartId", "450526"),
-            ("iSubChartId", "450526"),
-            ("sIdeToken", "PHq59Y"),
-            ("type", "4"),
-            ("page", &page.to_string()),
-        ])
-        .await?
-        .as_array()
-        .ok_or(Error::ParseError)?
-        .clone())
-}
-
-async fn get_battle_record_details(
-    sdk: &DeltaForceSdk,
-    room_id: &str,
-) -> Result<Vec<Value>, Error> {
-    Ok(sdk
-        .send_api_request(&[
-            ("iChartId", "450471"),
-            ("iSubChartId", "450471"),
-            ("sIdeToken", "ylP3eG"),
-            ("roomId", room_id),
-            ("type", "2"),
-        ])
-        .await?
-        .as_array()
-        .ok_or(Error::ParseError)?
-        .clone())
-}
 
 trait FromBattleRecordDetailsApi: Sized {
     fn from_battle_record_details_api(x: &Value) -> Result<Self, Error>;
@@ -110,7 +78,7 @@ impl DeltaForceSdk {
         Box::pin(stream! {
             let mut page: u8 = 1;
             loop {
-                let battle_records_list = match get_battle_records_list(&self, page).await {
+                let battle_records_list = match get_battle_records_list_api(&self, page).await {
                     Ok(list) => list,
                     Err(e) => {
                         yield Err(e);
@@ -131,7 +99,7 @@ impl DeltaForceSdk {
                         }
                     };
 
-                    let battle_details = match get_battle_record_details(&self, &room_id).await {
+                    let battle_details = match get_battle_record_details_api(&self, &room_id).await {
                         Ok(details) => details,
                         Err(e) => {
                             yield Err(e);

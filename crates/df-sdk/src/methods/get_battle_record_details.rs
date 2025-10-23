@@ -1,33 +1,13 @@
 use models::battle_record::{BattleRecord, Teammate};
 use serde_json::Value;
 
-use crate::{
-    error::Error,
-    parsers::{
-        parse_escape_result, parse_map_id_to_level, parse_map_id_to_map, parse_operator_id,
-        parse_str_then_number, parse_time, parse_uint,
-    },
-    sdk::DeltaForceSdk,
+use crate::apis::battle_records::get_battle_record_details_api;
+use crate::error::Error;
+use crate::parsers::{
+    parse_escape_result, parse_map_id_to_level, parse_map_id_to_map, parse_operator_id,
+    parse_str_then_number, parse_time, parse_uint,
 };
-
-// TODO: 抽象单独的 API 层，消除冗余代码
-async fn get_battle_record_details(
-    sdk: &DeltaForceSdk,
-    room_id: &str,
-) -> Result<Vec<Value>, Error> {
-    Ok(sdk
-        .send_api_request(&[
-            ("iChartId", "450471"),
-            ("iSubChartId", "450471"),
-            ("sIdeToken", "ylP3eG"),
-            ("roomId", room_id),
-            ("type", "2"),
-        ])
-        .await?
-        .as_array()
-        .ok_or(Error::ParseError)?
-        .clone())
-}
+use crate::sdk::DeltaForceSdk;
 
 trait FromBattleRecordDetailsApi: Sized {
     fn from_battle_record_details_api(
@@ -80,7 +60,7 @@ fn parse_teammate(x: &Value) -> Result<Teammate, Error> {
 
 impl DeltaForceSdk {
     pub async fn get_battle_record_details(&self, room_id: &str) -> Result<BattleRecord, Error> {
-        let battle_record_details = get_battle_record_details(self, room_id).await?;
+        let battle_record_details = get_battle_record_details_api(self, room_id).await?;
         if battle_record_details.len() == 0 {
             // TODO: 添加数据为空时的独立错误
             return Err(Error::ParseError);
