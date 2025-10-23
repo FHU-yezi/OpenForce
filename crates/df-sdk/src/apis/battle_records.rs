@@ -18,6 +18,7 @@ pub async fn get_battle_records_list_api(
             ("type", "4"),
             ("page", &page.to_string()),
         ],
+        true,
     )
     .await?
     .as_array()
@@ -38,6 +39,7 @@ pub async fn get_battle_record_details_api(
             ("roomId", room_id),
             ("type", "2"),
         ],
+        true,
     )
     .await?
     .as_array()

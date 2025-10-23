@@ -41,7 +41,11 @@ async fn main() {
             return;
         }
     };
-    let sdk = DeltaForceSdk::build().with_credentials(credentials).build();
+    let mut sdk_builder = DeltaForceSdk::build();
+    if let Some(credentials) = credentials {
+        sdk_builder = sdk_builder.with_credentials(credentials);
+    }
+    let sdk = sdk_builder.build();
 
     cli.command.handle(sdk).await;
 }

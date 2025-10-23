@@ -47,17 +47,16 @@ fn get_credentials_from_stdin() -> Result<Credentials, Error> {
     }
 }
 
-pub fn get_credentials(cookies_args: &CookiesArgs) -> Result<Credentials, Error> {
+pub fn get_credentials(cookies_args: &CookiesArgs) -> Result<Option<Credentials>, Error> {
     // 如果用户提供了具体的 Cookies 来源，仅从对应来源读取
-    // 否则，仅从环境变量读取
     if cookies_args.cookies_env {
-        get_credentials_from_env()
+        get_credentials_from_env().map(Some)
     } else if let Some(path) = &cookies_args.cookies_file {
-        get_credentials_from_file(path)
+        get_credentials_from_file(path).map(Some)
     } else if cookies_args.cookies_stdin {
-        get_credentials_from_stdin()
+        get_credentials_from_stdin().map(Some)
     } else {
-        get_credentials_from_env()
+        Ok(None)
     }
 }
 

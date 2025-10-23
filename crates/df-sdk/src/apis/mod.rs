@@ -33,6 +33,7 @@ pub async fn extract_data(response: Response) -> Result<Value, Error> {
 pub async fn send_api_request(
     sdk: &DeltaForceSdk,
     query_params: &[(&str, &str)],
+    with_credentials: bool,
 ) -> Result<Value, Error> {
     let mut url = sdk.endpoint.clone();
 
@@ -43,13 +44,16 @@ pub async fn send_api_request(
         }
     }
 
-    let request = sdk.client.post(url).header(
-        "Cookie",
-        sdk.credentials
-            .as_ref()
-            .ok_or(Error::MissingCredentials)?
-            .to_cookies(),
-    );
+    let mut request = sdk.client.post(url);
+    if with_credentials {
+        request = request.header(
+            "Cookie",
+            sdk.credentials
+                .as_ref()
+                .ok_or(Error::MissingCredentials)?
+                .to_cookies(),
+        );
+    }
 
     let response = request.send().await.map_err(|e| Error::RequestError(e))?;
 
