@@ -1,4 +1,5 @@
 pub mod battle_records;
+pub mod room_password;
 
 use reqwest::Response;
 use serde_json::Value;

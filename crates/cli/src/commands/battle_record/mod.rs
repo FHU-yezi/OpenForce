@@ -53,9 +53,7 @@ impl BattleRecordCommands {
                 format,
                 limit,
                 since,
-            } => {
-                list(sdk, format, limit, since).await;
-            }
+            } => list(sdk, format, limit, since).await,
         }
     }
 }

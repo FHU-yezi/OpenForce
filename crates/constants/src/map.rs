@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Map {
     Dam,
     Forest,
