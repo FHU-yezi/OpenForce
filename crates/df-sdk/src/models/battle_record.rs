@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use crate::constants::{escape_result::EscapeResult, level::Level, map::Map, operator::Operator};
+use crate::models::battle_record_teammate::BattleRecordTeammate;
 use serde::Serialize;
 use serde::Serializer;
 use time::PrimitiveDateTime;
@@ -20,17 +21,7 @@ pub struct BattleRecord {
     pub kill_bots_count: u16,
     pub escape_value: u32,
     pub net_profit: i32,
-    pub teammates: Vec<Teammate>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct Teammate {
-    pub operator: Operator,
-    pub escape_result: EscapeResult,
-    pub duration_seconds: u16,
-    pub kill_operators_count: u16,
-    pub kill_bots_count: u16,
-    pub escape_value: u32,
+    pub teammates: Vec<BattleRecordTeammate>,
 }
 
 pub fn datetime_serializer<S>(dt: &PrimitiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
@@ -95,20 +86,5 @@ impl Display for BattleRecord {
         }
 
         Ok(())
-    }
-}
-
-impl Display for Teammate {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(
-            f,
-            "队友：{}  对局时长：{} 秒  {}  击杀：干员 {} / AI {}  带出价值：{}",
-            self.operator.as_str(),
-            self.duration_seconds,
-            self.escape_result.as_str(),
-            self.kill_operators_count,
-            self.kill_bots_count,
-            self.escape_value
-        )
     }
 }

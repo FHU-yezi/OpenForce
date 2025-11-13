@@ -1,6 +1,6 @@
 use crate::apis::battle_records::{get_battle_record_details_api, get_battle_records_list_api};
 use crate::error::Error;
-use crate::models::battle_record::{BattleRecord, Teammate};
+use crate::models::{battle_record::BattleRecord, battle_record_teammate::BattleRecordTeammate};
 use crate::parsers::*;
 use crate::sdk::DeltaForceSdk;
 use async_stream::stream;
@@ -17,8 +17,8 @@ fn estimate_escape_value(net_profit: i32) -> u32 {
     }
 }
 
-fn parse_teammate(data: &Value) -> Result<Teammate, Error> {
-    Ok(Teammate {
+fn parse_teammate(data: &Value) -> Result<BattleRecordTeammate, Error> {
+    Ok(BattleRecordTeammate {
         operator: parse_operator_id(&data["ArmedForceId"])?,
         escape_result: parse_escape_result(&data["EscapeFailReason"])?,
         duration_seconds: parse_uint(&data["DurationS"])?,
@@ -37,7 +37,7 @@ fn parse_teammate(data: &Value) -> Result<Teammate, Error> {
 fn parse_battle_record(
     data: &Value,
     escape_value: u32,
-    teammates: Vec<Teammate>,
+    teammates: Vec<BattleRecordTeammate>,
 ) -> Result<BattleRecord, Error> {
     Ok(BattleRecord {
         id: parse_str(&data["RoomId"])?,

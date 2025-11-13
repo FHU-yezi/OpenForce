@@ -1,4 +1,4 @@
-use crate::models::battle_record::{BattleRecord, Teammate};
+use crate::models::{battle_record::BattleRecord, battle_record_teammate::BattleRecordTeammate};
 use serde_json::Value;
 
 use crate::apis::battle_records::get_battle_record_details_api;
@@ -9,8 +9,8 @@ use crate::parsers::{
 };
 use crate::sdk::DeltaForceSdk;
 
-fn parse_teammate(data: &Value) -> Result<Teammate, Error> {
-    Ok(Teammate {
+fn parse_teammate(data: &Value) -> Result<BattleRecordTeammate, Error> {
+    Ok(BattleRecordTeammate {
         operator: parse_operator_id(&data["ArmedForceId"])?,
         escape_result: parse_escape_result(&data["EscapeFailReason"])?,
         duration_seconds: parse_uint(&data["DurationS"])?,
@@ -29,7 +29,7 @@ fn parse_teammate(data: &Value) -> Result<Teammate, Error> {
 fn parse_battle_record(
     data: &Value,
     room_id: &str,
-    teammates: Vec<Teammate>,
+    teammates: Vec<BattleRecordTeammate>,
 ) -> Result<BattleRecord, Error> {
     Ok(BattleRecord {
         id: room_id.to_string(),
