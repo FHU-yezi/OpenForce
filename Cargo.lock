@@ -165,9 +165,7 @@ name = "cli"
 version = "0.0.0"
 dependencies = [
  "clap",
- "constants",
  "df-sdk",
- "models",
  "serde_json",
  "thiserror",
  "time",
@@ -180,13 +178,6 @@ name = "colorchoice"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
-
-[[package]]
-name = "constants"
-version = "0.0.0"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "core-foundation"
@@ -219,8 +210,6 @@ name = "df-sdk"
 version = "0.0.0"
 dependencies = [
  "async-stream",
- "constants",
- "models",
  "reqwest",
  "serde",
  "serde_json",
@@ -720,15 +709,6 @@ dependencies = [
  "libc",
  "wasi",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "models"
-version = "0.0.0"
-dependencies = [
- "constants",
- "serde",
- "time",
 ]
 
 [[package]]

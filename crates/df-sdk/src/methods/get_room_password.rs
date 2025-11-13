@@ -1,4 +1,4 @@
-use constants::map::Map;
+use crate::constants::map::Map;
 use serde_json::Value;
 
 use crate::apis::room_password::get_room_password_list_api;

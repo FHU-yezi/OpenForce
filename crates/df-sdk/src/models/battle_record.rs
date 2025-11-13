@@ -1,9 +1,6 @@
 use std::fmt::Display;
 
-use constants::escape_result::EscapeResult;
-use constants::level::Level;
-use constants::map::Map;
-use constants::operator::Operator;
+use crate::constants::{escape_result::EscapeResult, level::Level, map::Map, operator::Operator};
 use serde::Serialize;
 use serde::Serializer;
 use time::PrimitiveDateTime;

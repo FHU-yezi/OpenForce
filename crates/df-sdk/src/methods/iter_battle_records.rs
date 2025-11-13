@@ -1,9 +1,9 @@
 use crate::apis::battle_records::{get_battle_record_details_api, get_battle_records_list_api};
 use crate::error::Error;
+use crate::models::battle_record::{BattleRecord, Teammate};
 use crate::parsers::*;
 use crate::sdk::DeltaForceSdk;
 use async_stream::stream;
-use models::battle_record::{BattleRecord, Teammate};
 use serde_json::Value;
 use std::pin::Pin;
 use tokio_stream::Stream;

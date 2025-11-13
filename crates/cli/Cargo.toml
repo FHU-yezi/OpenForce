@@ -9,8 +9,6 @@ path = "src/main.rs"
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 df-sdk = { path = "../df-sdk" }
-models = { path = "../models" }
-constants = { path = "../constants" }
 serde_json = "1.0"
 tokio = { version = "1.48", features = ["macros", "rt-multi-thread"] }
 tokio-stream = { version = "0.1", default-features = false }

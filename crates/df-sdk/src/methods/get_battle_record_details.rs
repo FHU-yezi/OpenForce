@@ -1,4 +1,4 @@
-use models::battle_record::{BattleRecord, Teammate};
+use crate::models::battle_record::{BattleRecord, Teammate};
 use serde_json::Value;
 
 use crate::apis::battle_records::get_battle_record_details_api;
